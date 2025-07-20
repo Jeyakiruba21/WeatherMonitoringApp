@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>🌦️ WeatherPulse</title>
+    <style>
+        body {
+          background-color: #181829;
+          color: #f5f5f5;
+          font-family: 'Segoe UI', sans-serif;
+          margin: 0;
+          padding: 2rem;
+          display: flex;
+          justify-content: center;
+        }
+
+        .weather-container {
+          text-align: center;
+          background: linear-gradient(145deg, #2c2c46, #1a1a2f);
+          padding: 2rem;
+          border-radius: 1rem;
+          box-shadow: 0 0 25px rgba(255, 255, 255, 0.05);
+          max-width: 500px;
+          width: 100%;
+        }
+
+        h1 {
+          font-size: 2.2rem;
+          margin-bottom: 1rem;
+          color: #ffd700;
+        }
+
+        input {
+          padding: 0.7rem;
+          border: none;
+          border-radius: 0.5rem;
+          margin-bottom: 1rem;
+          width: 80%;
+          font-size: 1rem;
+          background-color: #2e2e3f;
+          color: #ffffff;
+        }
+
+        button {
+          padding: 0.7rem 1.2rem;
+          border: none;
+          background: #ff7e5f;
+          color: white;
+          font-size: 1rem;
+          border-radius: 0.5rem;
+          cursor: pointer;
+          transition: background 0.3s;
+        }
+
+        button:hover {
+          background: #feb47b;
+        }
+
+        .weather-card {
+          margin-top: 2rem;
+          display: none;
+          animation: fadeIn 1s ease forwards;
+        }
+
+        .weather-card p {
+          font-size: 1rem;
+          margin: 0.5rem 0;
+        }
+
+        #cityName {
+          font-size: 1.5rem;
+          margin-bottom: 0.8rem;
+          color: #7de5ff;
+        }
+
+        .search-history {
+          margin-top: 2rem;
+          text-align: left;
+          background: #393954;
+          padding: 1rem;
+          border-radius: 0.5rem;
+          box-shadow: 0 0 5px rgba(255, 255, 255, 0.1);
+        }
+
+        .search-history h3 {
+          margin-bottom: 0.5rem;
+          color: #ffea00;
+          font-size: 1.2rem;
+        }
+
+        .search-history ul {
+          list-style: none;
+          padding-left: 1rem;
+          max-height: 150px;
+          overflow-y: auto;
+        }
+
+        .search-history li {
+          padding: 0.5rem 0;
+          border-bottom: 1px solid #4c4c6c;
+          font-size: 0.95rem;
+          color: #fefefe;
+        }
+
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+<div class="weather-container">
+    <h1>🌦️ WeatherPulse</h1>
+    <input type="text" id="locationInput" placeholder="Enter location..." />
+    <button onclick="fetchWeather()">Check Weather</button>
+
+    <div class="weather-card" id="weatherCard">
+        <h2 id="cityName"></h2>
+        <p id="temperature"></p>
+
+        <p id="wind"></p>
+    </div>
+
+    <div class="search-history" id="searchHistory">
+        <h3>📍 Search History</h3>
+        <ul id="historyList"></ul>
+    </div>
+</div>
+
+<script>
+    function fetchWeather() {
+      const location = document.getElementById('locationInput').value.trim();
+      if (!location) return;
+
+      const url = `/api/weather/current?location=${location}`;
+      const card = document.getElementById('weatherCard');
+      card.style.display = 'block';
+
+      fetch(url)
+        .then(response => {
+          if (!response.ok) throw new Error("Weather data not found");
+          return response.json();
+        })
+        .then(data => {
+          const { location, current } = data;
+
+          document.getElementById('cityName').innerText = `📍 ${location.name}, ${location.country}`;
+          document.getElementById('temperature').innerText = `🌡️ Temperature: ${current.temp_c} °C`;
+          
+          document.getElementById('wind').innerText = `🌬️ Wind: ${current.wind_kph} km/h`;
+
+          // Append to search history
+          const emojiMap = {
+            hot: "🔥",
+            cold: "❄️",
+            windy: "🌪️",
+            rainy: "🌧️",
+            normal: "🌤️"
+          };
+
+          let mood = "normal";
+          if (current.temp_c >= 35) mood = "hot";
+          else if (current.temp_c <= 10) mood = "cold";
+          else if (current.wind_kph > 20) mood = "windy";
+
+
+          const listItem = document.createElement('li');
+          listItem.textContent = `${emojiMap[mood]} ${location.name}, ${location.country} — ${current.temp_c} °C`;
+          document.getElementById('historyList').appendChild(listItem);
+        })
+        .catch(err => {
+          document.getElementById('cityName').innerText = "❌ Error";
+          document.getElementById('temperature').innerText = "";
+
+          document.getElementById('wind').innerText = "";
+        });
+    }
+</script>
+</body>
+</html>
